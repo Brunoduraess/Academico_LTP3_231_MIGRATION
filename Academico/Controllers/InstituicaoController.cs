@@ -58,5 +58,20 @@ namespace Academico.Controllers
         }
 
 
+        public IActionResult Delete(long id)
+        {
+            return View(instituicoes.Where(i => i.Id == id).First());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public IActionResult Delete(Instituicao instituicao)
+        {
+            instituicoes.Remove(instituicoes.Where(i => i.Id == instituicao.Id).First());
+            return RedirectToAction("Index");
+        }
+
+
     }
 }
