@@ -72,6 +72,12 @@ namespace Academico.Controllers
             return RedirectToAction("Index");
         }
 
+        public IActionResult Details(long id)
+        {
+            return View(instituicoes.Where(i => i.Id == id).First());
+        }
+
+
 
     }
 }
