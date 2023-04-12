@@ -2,7 +2,6 @@
 using Academico.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Collections;
 
 namespace Academico.Controllers
 {
@@ -14,6 +13,7 @@ namespace Academico.Controllers
         {
             return _context.Instituicoes.Any(i => i.Id == id);
         }
+
         private readonly AcademicoContext _context;
 
         public InstituicaoController(AcademicoContext context)
@@ -26,27 +26,7 @@ namespace Academico.Controllers
             return View(await _context.Instituicoes.OrderBy(i => i.Nome).ToListAsync());
         }
 
-        private static IList<Instituicao> instituicoes = new List<Instituicao>()
-        {
-            new Instituicao
-            {
-                Id = 1,
-                Nome = "Hogwarts",
-                Endereco = "Escócia"
-            },
-            new Instituicao
-            {
-                Id = 2,
-                Nome = "Mansão X",
-                Endereco = "Nova Iorque"
-            }
-        };
-        public IActionResult Index()
-        {
-            return View(instituicoes);
-        }
-
-        public IActionResult Create()
+        public ActionResult Create()
         {
             return View();
         }
@@ -54,7 +34,7 @@ namespace Academico.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
 
-        public async Task<ActionResult> Create([Bind("Nome", "Endereço")]Instituicao instituicao)
+        public async Task<ActionResult> Create([Bind("Nome", "Endereco")]Instituicao instituicao)
         {
             try
             {
@@ -72,12 +52,48 @@ namespace Academico.Controllers
             return View(instituicao);
         }
 
-        public async Task<IActionResult> Edit(long? id, ["Id", "Nome", "Endereco"] Instituicao instituicao)
+        public async Task<IActionResult> Edit(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            var instituicao = await _context.Instituicoes.SingleOrDefaultAsync(i => i.Id == id);
+            if (instituicao == null)
+            {
+                return NotFound();
+            }
+            return View(instituicao);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+        public async Task<IActionResult> Edit(long? id, [Bind("Id", "Nome", "Endereco")] Instituicao instituicao)
         {
             if (id != instituicao.Id)
             {
                 return NotFound();
             }
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(instituicao);
+                    await _context.SaveChangesAsync();
+                } catch (DbUpdateConcurrencyException)
+                {
+                    if (!InstituicaoExists(instituicao.Id))
+                    {
+                        return NotFound();
+                    } else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction("Index");
+            }
+            return View(instituicao);
         }
 
         public async Task<IActionResult> Details(long? id)
